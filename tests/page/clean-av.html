@@ -1,0 +1,74 @@
+<!doctype html>
+<html class="th-clean th-clean-av">
+<meta charset="utf-8">
+<link rel="stylesheet" href="/style.css">
+<style>
+/* a copy of the hub's own rules the plugin lives with: core Clean "Chat avatars" (clean.css of hub 1.9.4, html.th-clean-av).
+   The core puts the row icon into a frame, wipes its background with !important and gives a direction a compass tile */
+:root { --c-fill: #eee; --c-t2: #666; --c-t1: #111; --foreground: #111; --muted-foreground: #666; }
+html.th-clean.th-clean-av #list .srow[data-clean-k] { --av: 16px; --av-r: 4px; --av-gap: 8px; --av-left: 0px; --ic: 12px; }
+html.th-clean.th-clean-av #list .srow[data-clean-k] > .txt { position: relative; line-height: 20px; padding-inline-start: calc(var(--av) + var(--av-gap) + var(--av-left)); }
+html.th-clean.th-clean-av #list .srow[data-clean-k] > .txt::before, html.th-clean.th-clean-av #list .srow[data-clean-k] .nm > .avatar {
+  content: ""; position: absolute; inset-inline-start: var(--av-left); top: calc(50% - var(--av) / 2); width: var(--av); height: var(--av); border-radius: var(--av-r); }
+html.th-clean.th-clean-av #list .srow[data-clean-k] .nm > .avatar { display: block; z-index: 1; background: none !important; cursor: pointer;
+  font-size: calc(var(--av) * 0.7); line-height: var(--av); text-align: center; }
+html.th-clean.th-clean-av #list .srow[data-clean-k="dir"] .nm > .avatar { display: none; }
+html.th-clean.th-clean-av #list .srow[data-clean-tile] .nm::before { content: ""; position: absolute; inset-inline-start: calc(var(--av-left) + (var(--av) - var(--ic)) / 2);
+  top: calc(50% - var(--ic) / 2); width: var(--ic); height: var(--ic); background: var(--c-t2); }
+/* Clean without "Chat avatars" (hub 1.9.3 and the option off): the list hides the row avatar */
+html.th-clean:not(.th-clean-av) .list .srow .nm > .avatar { display: none; }
+body { margin: 0; } ul { list-style: none; margin: 0; padding: 0; width: 260px; }
+</style>
+<ul id="list" class="list"></ul>
+<script type="module">
+// the hub's behavior the plugin lives with: the core draws the row (.srow > .txt > .nm > .avatar), the plugin's sidebar.session slot
+// root sits in the row and repaints the avatar
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const slots = {};
+const snap = { sessions: [{ name: "writer", role: "agent", icon: "🤖" }, { name: "news", icon: "🧭" }], directions: ["news"] };
+const hub = {
+  lang: "en", api: "1.14", el, snapshot: () => snap, post: async () => ({}), redraw() {},
+  url: (f) => "/" + f, addStyle() {}, addOptions() {}, addSettings() {},
+  addSlot(slot, item) { slots[slot] = item; },
+};
+const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+const out = {};
+try {
+  const avatars = await (await fetch("/avatars.json")).json();
+  localStorage.clear();
+  localStorage.setItem("hub.directionIcons.settings", JSON.stringify({ style: "sym", hop: false }));
+  localStorage.setItem("hub.directionIcons.img", JSON.stringify({ writer: { img: avatars[0], for: "🤖" } }));
+  (await import("/main.js")).default(hub);
+  await new Promise((r) => setTimeout(r, 500));   // emoji.json, symbols.json and avatars.json arrive
+  const list = document.getElementById("list"), rows = {};
+  for (const s of snap.sessions) {
+    const dir = snap.directions.includes(s.name);
+    const row = el("div", "srow"), txt = el("div", "txt"), nm = el("span", "nm"), root = el("div", "slot");
+    row.dataset.cleanK = dir ? "dir" : "agent";
+    if (dir) row.dataset.cleanTile = "1";
+    nm.append(el("span", "avatar", s.icon), " " + s.name);
+    txt.append(nm);
+    row.append(txt, root);
+    const li = el("li");
+    li.append(row);
+    list.append(li);
+    slots["sidebar.session"].render(root, snap, { session: s });
+    rows[s.name] = row;
+  }
+  await frame();
+  const look = () => {
+    const av = (n) => rows[n].querySelector(".nm > .avatar"), cs = (n) => getComputedStyle(av(n));
+    const svg = av("news").querySelector("svg");
+    return {
+      picture: cs("writer").backgroundImage, pictureShown: cs("writer").display !== "none", pictureWidth: cs("writer").width,
+      sign: !!svg, signShown: cs("news").display !== "none", signWidth: svg ? getComputedStyle(svg).width : "",
+      compass: getComputedStyle(rows.news.querySelector(".nm"), "::before").content,
+    };
+  };
+  out.av = look();
+  document.documentElement.classList.remove("th-clean-av");   // the option off: the plugin's own 24 px place
+  await frame();
+  out.plain = look();
+} catch (e) { out.error = String(e && e.stack || e); }
+await fetch("/result", { method: "POST", body: JSON.stringify(out) });
+</script>

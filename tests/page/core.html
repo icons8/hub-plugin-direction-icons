@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<script type="module">
+// Where the "Icon theme" block goes on two kinds of page: the shared hub of 1.9.4 (addOptions takes only checkboxes, a group
+// with render alone is refused with an entry under "Plugins") and this hub's build (addOptions with render and tab, capability iconThemes)
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const CORE = {
+  release: { api: "1.36", caps: { composerTransport: 1, composerLeading: 1, views: 1, viewToolbar: 1, openSettings: 1, receipt: 1, banner: 1, subgroups: 1, dictate: 1, sidebar: 1, inputRecord: 1, messageAt: 1 }, render: false },
+  local: { api: "1.36", caps: { composerTransport: 1, composerLeading: 1, views: 1, viewToolbar: 1, openSettings: 1, receipt: 1, banner: 1, subgroups: 1, dictate: 1, sidebar: 1, stay: 1, iconThemes: 1, composerTools: 1, inputRecord: 1, messageAt: 1 }, render: true },
+};
+const out = {};
+for (const [name, core] of Object.entries(CORE)) {
+  const got = out[name] = { options: null, settings: null, problems: [] };
+  const hub = {
+    lang: "en", api: core.api, capabilities: Object.freeze(core.caps), el, snapshot: () => ({ sessions: [], directions: [] }),
+    post: async () => ({}), redraw() {}, url: (f) => "/" + f, addStyle() {}, addSlot() {},
+    addSettings(s) { got.settings = { id: s.id, render: typeof s.render === "function" }; },
+    addOptions(g) {   // the shared hub's ext.js: a group needs at least one checkbox; this hub's also takes render alone
+      const options = (g?.options || []).filter((o) => o?.key && typeof o.label === "string");
+      if (!g?.title || !(options.length || (core.render && typeof g.render === "function"))) return got.problems.push("options_needs");
+      got.options = { tab: g.tab || "", render: typeof g.render === "function" };
+    },
+  };
+  try {
+    (await import(`/main.js?core=${name}`)).default(hub);
+  } catch (e) { got.error = String(e && e.stack || e); }
+}
+await fetch("/result", { method: "POST", body: JSON.stringify(out) });
+</script>

@@ -1,0 +1,85 @@
+/* "Direction icons": the button in the direction header and the sign picker. Page tokens only, no colors of its own. */
+.di-mark { display: none; }
+.di-slot { position: relative; display: inline-flex; flex: none; }
+.di-slot[hidden] { display: none; }
+/* in the hub v1.1 header the title has an icon with a palette of its own; our button replaces it, so there are not two pickers in a row */
+.di-slot:not([hidden]) ~ h2 .head-av { display: none; }
+.di-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0;
+  border: 1px solid transparent; border-radius: var(--radius); background: transparent; color: var(--foreground);
+  font: inherit; font-size: calc(18px * var(--ui-scale, 1)); line-height: 1; cursor: pointer; }
+.di-btn:hover, .di-btn[aria-expanded="true"] { background: var(--muted); border-color: var(--border); }
+.di-btn.di-empty { border: 1px dashed var(--border); color: var(--muted-foreground); font-size: calc(15px * var(--ui-scale, 1)); }
+.di-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: var(--z-popover, 60); width: 336px; max-height: 70vh;
+  overflow: hidden auto; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--card); color: var(--foreground); box-shadow: 0 12px 32px rgb(0 0 0 / 18%); display: grid; gap: var(--space-2); }
+.di-title { color: var(--muted-foreground); font-size: var(--text-xs); }
+.di-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+.di-opt { min-width: 0; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; aspect-ratio: 1; padding: 0; border: 1px solid transparent;
+  border-radius: var(--radius); background: transparent; font: inherit; font-size: calc(18px * var(--ui-scale, 1)); line-height: 1; cursor: pointer; }
+.di-opt:hover { background: var(--muted); }
+.di-opt[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--card)); }
+.di-foot { display: flex; gap: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--border); }
+/* result unread: the sign hops by 5 px, like in the Mac dock; the .nm row clips at the top, so leave room for the hop */
+.srow .nm:has(.di-hop) { padding-top: 6px; margin-top: -6px; }
+.avatar.di-hop { display: inline-block; animation: di-hop 1600ms infinite; }
+@keyframes di-hop {
+  0% { transform: translateY(0); animation-timing-function: cubic-bezier(.3, 0, .2, 1); }
+  18% { transform: translateY(-5px); animation-timing-function: cubic-bezier(.6, 0, .8, 1); }
+  36%, 100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .avatar.di-hop { animation: none; } }
+/* sign style and symbol color: Settings -> "Direction icons" */
+/* a symbol is an outline SVG of the Icons8 m_outlined pack in the text color; it scales with the font size of the sign */
+.di-svg { width: 1.25em; height: 1.25em; fill: currentColor; flex: none; vertical-align: -0.25em; }
+.di-colors { display: flex; flex-wrap: wrap; gap: 6px; }
+.di-swatch { box-sizing: border-box; width: 22px; height: 22px; padding: 0; border: 2px solid transparent; border-radius: 50%; cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 12%); }
+.di-swatch[aria-pressed="true"] { border-color: var(--foreground); }
+.di-rnd { background: conic-gradient(#e5484d, #ffb224, #30a46c, #0090ff, #8e4ec6, #e5484d); }
+.di-own-color { display: inline-flex; align-items: center; justify-content: center; background: var(--card); color: var(--muted-foreground);
+  font: inherit; font-size: 15px; line-height: 1; border-style: dashed; border-color: var(--border); }
+.di-own-color[aria-pressed="true"] { border-style: solid; border-color: var(--foreground); }
+.di-pick { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+.di-colors { position: relative; }
+.di-hint { color: var(--muted-foreground); font-size: var(--text-xs); }
+.di-set { display: grid; gap: var(--space-2); justify-items: start; }
+.di-set-title { margin-top: var(--space-2); font-size: var(--text-sm); font-weight: 600; }
+.di-set .hint { margin: 0; }
+.di-set .opt small { display: block; color: var(--muted-foreground); font-size: var(--text-xs); }
+/* Clean theme (html.th-clean): the button is the avatar the theme draws in the feed, same size and corner as there; the set of avatars
+   in the picker. The standard theme has none of this */
+html.th-clean .di-btn { width: 32px; height: 32px; border-radius: 6px; }
+html.th-clean .di-btn.di-av { border-color: transparent; }
+html.th-clean .di-img { display: block; width: 100%; height: 100%; border-radius: inherit; background: center / cover no-repeat; }
+html.th-clean .di-opt.di-av-opt { overflow: hidden; }
+html.th-clean .di-av-opt .di-img { border-radius: 6px; }
+/* Clean: the symbols of the picker take the text color of the theme (the per-chat colors are not used here), the chosen cell is a neutral fill instead of the blue accent */
+html.th-clean .di-pop .di-opt.di-sym { color: var(--c-t2, var(--muted-foreground)) !important; }
+html.th-clean .di-pop .di-opt.di-sym:hover { color: var(--c-t1, var(--foreground)) !important; }
+html.th-clean .di-opt:hover { background: var(--c-fill, var(--muted)); }
+html.th-clean .di-opt[aria-pressed="true"] { border-color: var(--c-line-strong, var(--border)); background: var(--c-fill, var(--muted)); }
+html.th-clean .di-opt.di-sym[aria-pressed="true"] { color: var(--c-t1, var(--foreground)) !important; }
+/* a sign of a list row is one flat glyph in the text color of the theme; a sign picture of the theme itself is a mask of the same color */
+.di-mask { display: block; width: 1.25em; height: 1.25em; background: currentColor;
+  -webkit-mask: var(--di-kit) center / contain no-repeat; mask: var(--di-kit) center / contain no-repeat; }
+.srow .avatar.di-sym { color: var(--muted-foreground); }
+.srow[aria-current="true"] .avatar.di-sym { color: var(--foreground); }
+/* Clean without "Chat avatars" hides the avatar of a list row; the outline sign of a specialist or a direction stays, in the room of the theme's own 24 px avatar */
+html.th-clean:not(.th-clean-av) .list .srow .nm:has(> .avatar.di-sym, > .avatar.di-pic) { display: flex; align-items: center; gap: 8px; }
+html.th-clean:not(.th-clean-av) .list .srow .nm > .avatar.di-sym { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px;
+  font-size: 16px; line-height: 1; color: var(--c-t2, var(--muted-foreground)); }
+html.th-clean:not(.th-clean-av) .list .srow[aria-current="true"] .nm > .avatar.di-sym { color: var(--c-t1, var(--foreground)); }
+/* an avatar in the list row (picked, or the theme's one of a specialist): the same 24 px place and corner as the outline sign, whose glyph is 20 px in it */
+html.th-clean:not(.th-clean-av) .list .srow .nm > .avatar.di-pic { display: inline-block; flex: none; width: 24px; height: 24px; border-radius: 6px; background: center / cover no-repeat; }
+/* Clean with "Chat avatars" (html.th-clean-av: the core Look option, on by default since hub 1.9.4; themes on the Clean layout get it too):
+   the core puts the row icon into a frame of its own (.txt::before, sizes --av and --ic), wipes the background of the icon (!important)
+   and gives a direction a compass tile instead of its icon. Our picked or theme picture and the outline sign stand in that frame;
+   a direction keeps its own sign and the compass goes. One class more than the core selector; the picture comes in --di-pic (main.js),
+   because the inline background-image loses to the core !important */
+html.th-clean.th-clean-av #list .srow[data-clean-k] .nm > .avatar.di-pic { display: block; font-size: 0; color: transparent;
+  background: var(--di-pic) center / cover no-repeat !important; }
+html.th-clean.th-clean-av #list .srow[data-clean-k] .nm > .avatar.di-sym { display: grid; place-items: center; font-size: var(--ic); line-height: 1;
+  color: var(--c-t2, var(--muted-foreground)); }
+html.th-clean.th-clean-av #list .srow[data-clean-k][aria-current="true"] .nm > .avatar.di-sym { color: var(--c-t1, var(--foreground)); }
+html.th-clean.th-clean-av #list .srow[data-clean-k] .nm > .avatar.di-sym > :is(.di-svg, .di-mask) { width: var(--ic); height: var(--ic); vertical-align: 0; }
+html.th-clean.th-clean-av #list .srow[data-clean-tile] .nm:has(> .avatar:is(.di-sym, .di-pic))::before { content: none; }
